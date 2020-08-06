@@ -1,0 +1,129 @@
+Google index search:--------
+intitle:index.of?<file>iso  |
+----------------------------
+
+
+APN CONFIG:--------------------------
+AT+CGDCONT=1,"IP","java.claro.com.br"|
+-------------------------------------
+
+
+Android heap dump:==================================
+#Obter PID do app
+ps | grep evozi
+#Dump no PID
+adb shell am dumpheap 19000 /sdcard/mem.hprof
+#Conversão do dump para formato comum
+hprof-conv.exe mem.hprof memC.hprof
+#Abrir com plugin MAT no Eclipse
+#Realizar buscar OQL:
+SELECT * FROM com.evozi.tunnel.SSHTunnelService
+____________________________________________________
+
+
+Redirecionando app com bloqueio a Wi-Fi:
+
+# Habilitar dados móveis e função roteador no android
+# Conectar PC à rede Wi-Fi criada
+
+# No PC:
+# *sendo eth0 a interface com rota padrão para a internet
+route del default gw 192.168.43.1 dev wlan0
+sysctl -w net.ipv4.ip_forward=1
+iptables -A FORWARD -i wlan0 -j ACCEPT
+iptables -A FORWARD -o eth0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+# No android:
+# *sendo 192.168.43.220 o IP do PC na rede Wi-Fi criada
+# *sendo 149.57.117.0 a rede qual o host a ser redirecionado está
+route add default gw 192.168.43.220 dev wlan0
+route add -net 149.57.117.0 netmask 255.255.255.0 gw 192.168.43.220
+____________________________________________________
+
+
+
+EPROXY PRO:----------------------------------------
+-Limpar dados Eproxy emulador                      |
+-Abrir Eproxy emulador e confirmar alerta emulador |
+-Abrir arquivo trancado no celular                 |
+-Copiar prefers.xml para para emulador             |
+-Abrir Eproxy no emulardor                         |
+                                                   |
+-Payload:                                          |
+-team.dev.epro.proxyserver.fragments.OneFragment   |
+---->e = AppCompatEditText                         |
+----->mText                                        |
+------>mText                                       |
+                                                   |
+-Payload após Start:                               |
+team.dev.epro.proxyserver.socket.ProxyServer       |
+---------------------------------------------------
+
+
+Eproxy:---------------------------------------------
+Studio package: org.bugs4u.proxyserver.model.Model  |
+Eproxy PC jasypt pass: bl4th4nkGanteng              |
+Eproxy PC jasypt algo: PBEwithMD5andDES             |
+----------------------------------------------------
+
+_______________________________________________________________________________________
+Win8 Boot
+Para boot no estilo legacy: bcdedit /set {default} bootmenupolicy legacy
+Para boot na nova scren:    bcdedit /set {default} bootmenupolicy standard
+
+________________________________________________________________________________________
+
+WIN PROXY:
+Proxy ativo: netsh winhttp show proxy
+Configurar proxy: netsh winhttp set proxy 200.142.130.104:80
+Resetar proxy: netsh winhttp reset proxy
+
+________________________________________________________________________________________
+Busca em arquivos indexados(sem aspas): intitle:index.of?<"arquivo">"Extensão(EX.: mp3)"
+________________________________________________________________________________________
+
+Redes e hotspot virtual Win8:
+netsh interface set interface name="Cabo" admin=disabled --Desativa o adaptador
+
+netsh wlan show profiles --Mostra perfis de rede registrados
+netsh wlan set profileparameter name=ProfileName connectionmode=manual  --Conexão manual
+netsh wlan delete profile name="ProfileName"  --Deleta um perfil de rede
+netsh wlan show networks --Mostra redes ao alcance, incluindo ad-rocs
+
+netsh wlan set hostednetwork mode=allow ssid=<NomedaRede> key=<SuaSenha> --Criando ad-roc
+netsh wlan start hostednetwork  --Ativação do serviço
+netsh wlan stop hostednetwork --Interrupção do serviço
+(para compartilhar o acesso a internet realize o compartilhamento NAT normalmente pelo adaptador de rede)
+
+________________________________________________________________________________________
+*Resolução da prompt: mode "nColunas","nLinhas"
+________________________________________________________________________________________
+
+Embaralhar conteúdo de arquivo:
+FILE="/home/humano/accounts.txt"
+S="$(cat $FILE; printf a)"
+S="${S%a}"
+java -jar Embaralhador.jar e "$(printf "$S")"
+
+_________________________________________________________________________________________
+
+ASCII decimais acentuados:
+135 = ç                   |
+128 = Ç                   |
+198 = ã                   |
+199 = Ã                   |
+181 = Á                   |
+160 = á                   |
+133 = à                   |
+131 = â                   |
+167 = º                   |
+166 = ª                   |
+228 = õ                   |
+162 = ó                   |
+224 = Ó                   |
+144 = É                   |
+130 = é                   |
+161 = í                   |
+163 = ú                   |
+--------------------------

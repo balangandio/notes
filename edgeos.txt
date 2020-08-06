@@ -1,0 +1,132 @@
+#Após entrar com usuário ubnt
+
+#Vire root:
+sudo su
+
+#Altere a porta da interface web para 8443 e SSH para 443:
+configure
+set service gui https-port 8443
+commit
+set service ssh port 443
+delete service ssh disable-password-authentication
+set service ssh allow-root
+commit
+save
+exit
+
+#Mate a interface web:
+kill -SIGTERM $(cat /var/run/lighttpd.pid)
+
+#Defina a senha do root:
+passwd
+
+#Adicione um DNS do google caso não haja:
+echo 'nameserver 8.8.8.8' >> /etc/resolv.conf
+
+#Configure apt-get:
+configure
+set system package repository wheezy components 'main contrib non-free'
+set system package repository wheezy distribution wheezy 
+set system package repository wheezy url http://http.us.debian.org/debian
+set system package repository wheezy-security components main
+set system package repository wheezy-security distribution wheezy/updates
+set system package repository wheezy-security url http://security.debian.org
+commit
+save
+exit
+
+#Atualize e instale utilitários:
+apt-get update
+apt-get install wget unzip
+
+
+#Diversos (*sempre como usuário root)
+
+#Squid:
+cd /etc/squid3
+mv squid.conf squid.conf.old
+wget http://universo42.comxa.com/Tmp/vps/squid.conf
+service squid3 start
+
+#PythonProxy:
+wget http://universo42.comxa.com/Files/E-Book/Shell-scripts/PythonProxy-Header.py
+nohup PythonProxy-Header.py > log.txt &
+
+#Adicionando usuário restrito a SSH tunneling:
+useradd josnei -M -s /bin/false && echo josnei:senha123 | chpasswd
+
+#Deletando um usuário:
+userdel josnei
+
+#Impeça ubnt de se logar:
+echo 'DenyUsers ubnt' >> /etc/ssh/sshd_config
+service ssh restart
+
+#Java
+apt-get install openjdk-7-jre
+ln -s /usr/lib/jvm/java-1.7.0-openjdk-mips/jre/bin/java /bin
+
+#Speedtest
+cd /tmp
+wget http://universo42.comxa.com/Files/E-Book/Shell-scripts/speedtest.py
+python speedtest.py
+
+#Init script:
+echo 'kill -SIGTERM $(cat /var/run/lighttpd.pid)' > /config/scripts/post-config.d/init.sh
+echo 'python /root/PythonProxy-Header.py > /root/PythonProxy-Header.py.log &' >> /config/scripts/post-config.d/init.sh
+echo 'service squid3 start' >> /config/scripts/post-config.d/init.sh
+echo 'echo nameserver 8.8.8.8 > /etc/resolv.conf' >> /config/scripts/post-config.d/init.sh
+chmod 777 /config/scripts/post-config.d/init.sh
+
+#User manager
+configure
+set system login user admin authentication plaintext-password nimda
+delete system login user ubnt
+commit
+save
+exit
+
+#Sudo user
+useradd sshuser -G sudo -M -s /bin/bash && echo sshuser:pass123 | chpasswd && sed -ri 's/^# (%sudo.+ALL=(ALL).+NOPASSWD: ALL)/\1/' /etc/sudoers
+
+#Recuperando pts
+mount devpts /dev/pts -t devpts
+
+
+
+# Scripts no boot
+########## Script não blocante ###########
+vi /config/scripts/post-config.d/boot.sh
+
+#!/bin/bash
+# Inicia scripts
+/config/user-data/sshd.sh &
+/config/user-data/pp.sh &
+
+chmod +x /config/scripts/post-config.d/boot.sh
+
+########## Script blocante ###############
+vi /config/user-data/pp.sh
+
+#!/bin/bash
+# Mata o lighttpd e inicia o python proxy
+sleep 30s
+kill -SIGTERM $(cat /var/run/lighttpd.pid)
+nohup python /config/user-data/pp.py
+
+chmod +x /config/user-data/pp.sh
+
+########## Script blocante ###############
+vi /config/user-data/sshd.sh
+
+#!/bin/bash
+# Edita o arquivo sshd_config
+sleep 30s
+sed '/UsePrivilegeSeparation/d' /etc/ssh/sshd_config > /tmp/sshd.tmp
+echo 'UsePrivilegeSeparation no' >> /tmp/sshd.tmp
+echo 'DenyUsers ubnt' > >/tmp/sshd.tmp
+rm /etc/ssh/sshd_config
+mv /tmp/sshd.tmp /etc/ssh/sshd_config
+service ssh restart
+
+chmod +x /config/user-data/sshd.sh

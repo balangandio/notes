@@ -1,0 +1,50 @@
+x\r\n\r\n Claro max GET request len = 12480
+no end request - MAX SEND: 11237 - MAX RESV: 11918
+
+
+
+############################### WORKING #########################################
+
+__________________
+CLARO: POST + recargafacil + chip com pacote natura:
+Ex.: POST / HTTP/1.1\r\nContent-Length: 5\r\nContent-Type: application/octet-stream\r\nConnection: Keep-Alive\r\nUser-Agent: X\r\nHost: www.recargafacil.claro.com.br/abcdll-5xfg/\r\n\r\n12345
+*envio sem limite
+---------------------------------------------------
+
+__________________
+CLARO: APN wap + proxy 200.169.126.11:8799 + chip com pacote luiza
+Payload: [netData][crlf][crlf] X
+---------------------------------------------------
+
+__________________
+CLARO: GET + user-agent + conn close 
+GET / HTTP/1.1\r\nUser-Agent: x\r\nConnection: close\r\n\r\nx\r\n\r\n
+*max request length: 12480
+---------------------------------------------------
+
+__________________
+VIVO: url ddivulga
+APN: zap.vivo.com.br sem pacote e saldo abaixo de R$0.99
+Payload:
+CONNECT [host_port]@navegue.vivo.ddivulga.com/pacote HTTP/1.1[crlf][crlf]
+---------------------------------------------------
+
+__________________
+VIVO:=== url sdp.vivo.com.br
+APN: zap.vivo.com.br sem pacote e saldo abaixo de R$0.99
+Payload:
+[netData][crlf]X-Online-Host: sdp.vivo.com.br[crlf][crlf]
+---------------------------------------------------
+
+
+
+############################### DEAD ###########################################
+
+__________________
+VIVO: APN mms.vivo.com.br e seus proxies
+Payload:
+GET http://termnat.vivomms.com.br:8088/mms// HTTP/1.1[crlf]
+Host: termnat.vivomms.com.br:8088/mms/[crlf]
+Connection: Keep-Alive[crlf][crlf]
+CONNECT [host_port]@termnat.vivomms.com.br:8088/mms/ [protocol][crlf][crlf]
+---------------------------------------------------

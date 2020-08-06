@@ -1,0 +1,67 @@
+---OPKG----------------------------------------
+
+echo "option overlay_root /tmp" >> /etc/opkg.conf
+opkg update
+
+
+---SSH-----------------------------------------
+opkg install openssh-server
+
+cd /etc/ssh
+mv sshd_config sshd_config.old
+
+echo "Port 443" > sshd_config
+echo "Protocol 2" >> sshd_config
+echo "PermitRootLogin yes" >> sshd_config
+echo "PermitEmptyPasswords yes" >> sshd_config
+echo "PasswordAuthentication yes" >> sshd_config
+echo "TCPKeepAlive yes" >> sshd_config
+echo "UseDNS yes" >> sshd_config
+
+#Defina a senha do usuario sshd
+passwd sshd
+
+#kill ssh primeiro
+/etc/init.d/sshd start
+
+
+---SQUID-----------------------------------------
+opkg install squid
+
+cd /etc/squid
+mv squid.conf squid.conf.old
+wget http://universo42.comxa.com/tmp/squid.conf.pub
+mv squid.conf.pub squid.conf
+mkdir /var/cache
+mkdir /var/logs
+chown -R nobody /var/logs
+chown -R nobody /var/cache
+squid -z
+squid
+
+
+---PythonProxy-----------------------------------
+opkg install python
+cd /tmp
+wget http://universo42.comxa.com/Files/E-Book/Shell-scripts/PythonProxy.py
+python PythonProxy.py &
+
+
+---OPENVPN---------------------------------------
+
+opkg install openvpn openvpn-easy-rsa liblzo
+mkdir /etc/openvpn
+cd /etc/openvpn
+wget http://universo42.comxa.com/Tmp/vps/openvpn-server-files.zip
+opkg install unzip
+openvpn server.conf
+
+
+#Verificar se 443 e 8080 estão listening:
+netstat -an | grep LISTEN
+
+
+177.36.129.126
+177.36.129.121
+189.211.78.67
+89.33.23.233

@@ -1,0 +1,21 @@
+Rainbow tables
+
+Ao contrário de um dicionário comum que contém várias senhas em texto, uma rainbow tables contém para cada senha em texto sua hash já processada. Assim, no processo de cracking, poupa-se o estágio de "hashear" cada senha para depois comparar, para somente comparar. Mas o que faz rainbow tables realmente uteis e praticavéis, é a possibilidade de poder ter todas as combinações de um determinado formato de senha, sem para isto, precisar de terabytes de armazenamento, como é visto ao se tentar armazenar dicionários de hashs. Graças ao algoritmo de time-memory trade off:
+
+Cada rainbow table é formada por milhares(quantas se queira ou acha-se necessário) de chains(cadeias), uma chain é representada(e amazenada) na tabela como uma senha qualquer(que está nas possibilidades) e uma hash resultada de uma função de redução sobre essa hash. 
+
+Uma função de redução pega uma senha em texto, transforma-a em hash, pega a hash transformada e gera uma nova senha apartir dela(como as primeiras letras da hash, ou nºs, ou caracteres alfanuméricos, etc, no entato que está nova senha esteja dentre as possibilidades), e continua esse processo até que se queira parar ou ache-se necessário.
+
+		Rainbow table
+________________________________________________________
+Senha		Hash após função de redução		|        *regra de redução: pega-se os 1ºs 8 dígitos da hash:
+87654321 | e54452ef2b23caab3efca34ac23dd5ff32c6daec6 	| <------uma chain na tabela= 87654321 > af4cef2426g2y4g23...
+33545653 | ewtdfy43846t6df2ty3vf2tt3t5fd623fcyt235er2635fe |	 424262423 > fe56c26352476r8f2...
+							|	 562635247 > 235dfcse6dct723re...
+***minhões de chains***					|	 ***minhões de passos redução***
+							|	 243275843 > e54452ef2b23caab3...
+45333263 | c32356dr27362837dy826dft732re723tr82376824	|
+
+No processo de cracking, vai se reduzindo a hash da senha que se queira descobrir e comparando cada sub hash gerada com as que estão na tabela(a hash de cada chain), se a hash for igual a hash de uma chain, significa que em algum momento a senha apareceu no processo de formação da chain. E para obte-la dessa chain, basta repetir o processo de formação, mas até a quantidade de passos anteriores a quantidade realizada na hash alvo. 
+
+Assim, o algoritmo de time-memory trade off possibilita que inúmeras combinações sejam "armazenadas"(representadas) por uma chain, que é formada na verdade só por uma senha e uma hash. Um problema desse processo, é que não se pode supor as senhas representadas por uma chain, elas são quase que aleatórias(dentro do formato que se queira, claro), a não ser que se refassa a redução novamente salvando as senhas em cada passo. Desse modo, uma rainbow table na verdade não é um processo exato, não se tem a certeza que todas as combinações de um formato de senha "estarão" lá. Pode-se apenas julgar a probabilidade de acerto de acordo com o nº de chains e passos realizados em cada chain.

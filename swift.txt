@@ -1,0 +1,218 @@
+-Variáveis acetuadas são permitidas
+-Linhas não são fechadas com ;
+
+
+-Saída console:
+print("Hello World!")
+
+
+-Comentários:
+//
+/*  */
+
+
+-Variáveis:
+--Constantes
+let x = 1
+--Variáveis
+var x = 1
+
+
+-Tipagem
+--Tipagem estática: ao se atribuir um valor a uma variável sem tipo, seu tipo é automaticamente mensurado
+var x = 1  é o mesmo que  var x: Int = 1
+
+--Uma vez mensurado, ela não recebe outro valor de tipo diferente
+--É necessário especificar o tipo para caracteres e floats, pois os dados são vistos como String e Double:
+var x = "a"  é  var x: String = "a"
+var x = 2.0  é  var x: Double = 2.0
+var x: Character = "a"  para caracter
+var x: Float = 2.0      para float
+
+
+-Opcionalidade
+--Os tipos de dados podem ser empacotados e armazenar o valor nil
+var x: Int? = nil
+var x = nil  é o mesmo que  var x: Int? = nil
+--Para desempacotar esses tipos usa-se o operador !:
+var y = x!  que resulta em erro se x tiver nil
+
+
+-Conversão
+var x = Int("123")  é  var x: Int = 123
+var x = Int("abc")  é  var x: Int? = nil
+
+
+-Operadores
+--Atribuição: =
+--Aritméticos: +, -. *, %, /
+---/ retorna real se haver um real entre os operandos
+---var x: Double = 2/3  //Retorna um Double pois o tipo esperado é Double
+--Incrementos: x++, --x
+--Contrações: x += 1
+--Lógicos: &&, !!
+--Relacionais: >, <, ==, !=, <=, >=
+
+ 
+-Ternário
+x = (true) ?  2 : 3
+
+-if
+--if true { ... }
+--if false { ... } else { ... }
+--if false { ... } else if true { ... }
+
+-if let
+--if let x = y { }
+--Declara uma constante dentro do bloco. y deve ser necessariamente um opcional. Se y = nil, false
+
+-Switch
+--Obrigatoriamente deve conter o caso default(exceto com enums)
+--Não necessita de break para os casos
+--Pode analizar intervalos: case 1...3:  case 5..<7:, ou múltiplos valores case 1,2,3:
+switch "Josei" {
+  case "1": ...
+  case "2": ...
+  default: ...
+}
+
+
+-Laços
+--do while
+do {
+  ...
+} while true
+--while
+while true { ... }
+--for
+for c in "ola" {
+	print("\(c)")
+}
+for i in 0...5 { ... }
+for i in 0..<5 { ... }
+
+
+-String
+--Pode ser imultável com let
+--Concatenação com operador +
+--Interpolação
+var str = "ola"
+str += "\(str) universo!"
+--Comparações
+var v = (str == str2)
+var v = (str > str2)
+--Interável com for:
+for c in "ola" { ... }
+
+
+-Arrays
+--Pode ser imultável com let
+--0 a n-1
+--Declaração:
+var x = [1, 2, 5]  mesmo que  var x: Array<Int> = [1, 2, 5]
+--Arrays vazios
+var x = [Int]()    mesmo que  var x = Array<Int>()
+--Pode concatenar com +
+var x = [1, 2, 3] + [4, 5, 6]
+
+
+-Dicionários
+--Pode ser imultável com let
+--Hash maps. Associam uma chave a um valor
+var m = ["ad": 2, "jf": 4, "fh": 3]
+var m: Dictionary<String, Double> = ["ad": 2, "jf": 4, "fh": 3]
+m["cs"] = 12
+--Declaração
+var m = [String: Double]()
+--Percorrimento das tuplas
+for (key, val) in m { ... }
+
+
+-ENUMs
+--Enumerador de constantes
+enum Bussola { case Note, Sul, Leste, Oeste }
+--Podem conter valoes:
+enum Chars: Character {
+	case Tab = "\t"
+	case Line = "\n"
+}
+--Podem conter valores associados a constantes:
+enum Trem {
+	case NoHorario
+	case Atrasado(Int)
+}
+var x = Trem.Atrasado(5)
+var x: Trem = .Atrasado(23)
+--Verificando com switch:
+switch Trem {
+  case .NoHorario: print("ok")
+  case .Atrasado(let min): print("\(min)");
+}
+
+
+-Funções
+--Sem retorno sem parâmetros:
+func funcao() { ... }
+--Com retorno sem parâmetros:
+func funcao() -> Int { ... }
+--Com retorno com parâmetros:
+func funcao(x:Int, y: String) -> Int { ... }
+--Retornando tuplas:
+func funcao() -> (String, Int, Double) {
+	return ("ola", 2, 2.12)
+}
+var (x, y, z) = funcao()
+--Referências a funções constituem também um dado:
+func imprimir(str: String) {...}
+var x = imprimir
+x("ola")
+--Podem receber outra função como parâmetros:
+func funcao(outra: (String) -> ()) {
+	outra("ola")
+}
+funcao(imprimir)
+--Operando valores de um vetor com uma função
+func dup(i: Int) -> Int {
+	return i * 2
+}
+vetor.map(dup)
+
+
+-Classes
+class Classe {
+	private var x: String
+	
+	init(x: String) {
+		self.x = x
+	}
+	
+	private mt(#str: String) {...}
+}
+--Métodos e atributos podem ser privados com private
+--O próprio objeto é referencado com self
+--# torna o usa da label obrigatória na chamada
+--Herança:
+class Classe2: Classe { 
+	override func mt(#str: String) {
+		super.mt(#str: str)
+	}
+}
+--Sobrescrita com override
+--Classe superior referenciada com super
+
+
+-Protocolos
+--Interfaces. Definem assinatura de métodos
+protocol Operacao {
+	func calcular()
+}
+class Classe: Operacao {
+	func calcular() {...}
+}
+
+
+-Extensões
+--Permite continuar classes já existentes
+extension String {
+	func do() -> String {...}
+}

@@ -1,0 +1,214 @@
+COMPARTILHANDO VPN COM O ROTEADOR:-----------------------------------------
+-iptables -t filter -F FORWARD
+-iptables -t nat -F POSTROUTING
+-iptables -t filter -I FORWARD -j ACCEPT
+-iptables -t nat -I POSTROUTING -j MASQUERADE
+-ip rule add from 192.168.43.0/24 lookup 61
+-ip route add default dev tun0 scope link table 61
+-ip route add 192.168.43.0/24 dev wlan0 scope link table 61
+-ip route add broadcast 255.255.255.255 dev wlan0 scope link table 61
+
+
+REDE ANRDROID:-------------------------------------------------------------
+Mostrando DNS:
+-getprop net.dns1
+-getprop net.dns2
+
+Alterando DNS:
+-setprop net.dns1 8.8.8.8
+-setprop net.dns2 8.8.4.4
+
+Mostrando route table:
+-ip route
+-busybox route  #Caso tenha Busybox instalado
+
+Alterando route table:
+-ip route del all  #Lipando
+-ip route add default via 192.168.0.1 dev wlan0  #Alterando default getway
+-ip route add 50.7.66.170 via 192.168.0.1  #Definindo rota de um IP
+-ip route del 50.7.66.170 via 192.168.0.1  #Deletando rota
+
+
+Definindo rota de um IP num arquivo .ovpn:
+-route MEU_REMOTE_PROXY 255.255.255.255 net_gateway
+____________________________________________________________________________
+
+Carregar o módulo correto para a placa de rede e certificar-se de que o sistema o utilizou 
+para habilitar a interface de rede:
+
+lsmod  --Verifica os módulos carregados
+"/etc/modules.conf" e adicione a linha: alias (interface) (módulo)  --Carrega módulo no boot
+modprobe (módulo)  --Carrega o módulo
+
+____________________________________________________________________________________________
+Configurar o IP, máscara e as demais configurações da rede:
+
+*dhclient eth0
+ifconfig eth0 192.168.0.10 netmask 255.255.255.0 up  --IP e mask
+route del default  --Desativa configurações anteriores de rede
+route add default gw 192.168.0.1 dev eth0  --Define o getway padrão
+"/etc/resolv.conf" e adicione a linha: nameserver 8.8.8.8  --Define os DNSs
+
+Placa virtual: ifconfig eth0:0 192.168.0.1 netmask 255.255.255.0
+*para adicionar rota: route add -net 192.168.0.0 netmask 255.255.255.0 eth0:0
+(para defini-la como getway padrão: route add default gw 192.168.0.1 eth0:0)
+*para desativar: ifconfig eth0 down
+
+____________________________________________________________________________________________
+WI-FI:
+
+*iwconfig wlan0 rate 2M  --Defina taxas mais adquadas à distância
+
+WEP:
+iwlist wlan0 scan  --Scan
+iwconfig wlan0 essid REDE
+iwconfig wlan0 channel 10
+*iwconfig wlan0 key off
+*iwconfig wlan0 key restricted 123456789A  --Key WEP hexadecimal
+*iwconfig wlan0 key restricted s:qwert  --Key WEP ASCII
+ifconfig wlan0 up  --Ativa a rede
+
+WPA:
+wpa_passphrase REDE SENHAREDE > /etc/wpa_supplicant.conf
+wpa_supplicant -i wlan0 -c /etc/wpa_supplicant.conf -B -D wext
+*killall wpa_supplicant  /  *service wpa_supplicant stop  --Fecha o processo
+
+iwconfig wlan0 essid REDE
+iwpriv wlan0 set Channel=11
+iwpriv wlan0 set AuthMode=WPAPSK
+iwpriv wlan0 set EncrypType=TKIP
+iwpriv wlan0 set WPAPSK="senha"
+
+AD-HOC(Usando NAT):  --No cliente, use os IPs da mesma faixa e os DNSs do provedor
+iwconfig wlan0 mode Ad-Hoc
+iwconfig wlan0 essid REDE
+*iwconfig wlan0 key off
+*iwconfig wlan0 key restricted s:SENHA
+ifconfig wlan0 192.168.0.1 netmask 255.255.255.0
+*modprobe iptable_nat
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+*iptables -F -t nat  --Para o serviço
+
+Ad-Hoc(Usando como bridge):
+iwconfig wlan0 mode Ad-Hoc
+iwconfig wlan0 essid REDE
+*iwconfig wlan0 key off
+*iwconfig wlan0 key restricted s:SENHA
+*apt-get install bridge-utils
+ifconfig eth0 0.0.0.0 up
+ifconfig wlan0 0.0.0.0 up
+brctl addbr br0  --Cria a interface br0
+brctl setfd br0 0  --Permite o DHCP da outra rede
+brctl addif br0 eth0
+brctl addif br0 wlan0
+ifconfig br0 192.168.0.23 netmask 255.255.255.0 broadcast 192.168.0.255 up  --Endereço do bridge(PC)
+route add default gw 192.168.0.1 dev br0  --Getway do bridge(PC)
+*ifconfig br0 down; *brctl delbr br0  --Desativa o bridge
+
+____________________________________________________________________________________________
+BLUETOOTH:
+
+-DUN:
+
+-Install Bluetooth utilities:
+bluez-utils
+bluez-gnome
+wvdial
+
+-The Pairing:
+hcitool scan --MAC device
+sdptool search dun  --Channel of device
+rfcomm bind 0 (MAC) (Channel)
+rfcomm  --Stats
+/etc/bluetooth/rfcomm.conf and /etc/wvdial.conf --Config file
+wvdial  --Connect
+
+-PAN:
+
+modprobe bnep
+pand -n --role PANU --connect A0:71:A9:5D:30:6C
+dhclient bnep0
+*pand -K   --Encerrar conexão
+*pand -l   --Lista as conexões ativas
+
+____________________________________________________________________________________________
+DNS tunneling com DNS2TCP:
+1º O servidor deve estar com IP externo. Coloque um nome de domínio para seu IP(noip.com).
+2º Configurar o servidor dns2tcp, no arquivo /etc/dns2tcpd.conf:
+
+	listen = 0.0.0.0  #Irá ouvir em todas as interfaces
+	port = 53  #Porta onde as requisições chegaram
+	user = nobody  #Qualquer um pode acessar
+	chroot = /tmp
+	domain = yourdomain.domainprovader.com  #Seu domínio referente ao seu IP
+	resources = ssh:127.0.0.1:22  #Recursos que irão serem utilizados
+
+3º Lique o servidor dns2tcp: 
+	dns2tcpd -f /etc/dns2tcpd.conf &
+4º No cliente, verifique os recursos ativados do servidor se está funcionando:
+	dns2tcpc -z tn.servertn.mooo.com <IPdoServidor>
+5º No cliente, redirecione a porta local SSH do servidor para uma porta sua local:
+	dns2tcpc -z tn.servertn.mooo.com -l <PortaLocal:4242> -r ssh <IPdoServidor>
+6º No cliente, entre em uma sessão ssh mas na porta feita pelo dns2tcpc e tunelando para uma porta:
+	*No PuTTy, coloque o IP 127.0.0.1 e a porta aberta pelo dns2tcpc, no exemplo 4242,
+	*e depois, na opção Connection>SSH>Tunnels, ative a opção Dynamic, e coloque uma porta em
+	*Source port e adicione-a, exemplo 8080. Ligue a conexão e faça o login. Coloque essa 
+	*porta nas configurações de Socks dos programas e pronto.
+	*No openSSH, apenas digite o comando: ssh user@localhost -p 4242 -D 8080  e faça login
+
+____________________________________________________________________________________________
+DNS tunneling com Iodine:
+1º O servidor deve está com IP externo. Registre-se no site freedns.afraid.org e loga-se com a conta:
+	Na seção "Subdomains", clique em "add"
+	Escolha em Type, "A"
+	Em Subdomain, escolha um nome qualquer de preferencia o mais curto possível, exemplo: idionetn 			Em Domain, escolha um domínio qualquer, como: mooo.com
+	Marque a caixa de seleção "Enabled for all subscribers" e salve
+	Novamente seção "Subdomains", clique em "add"
+	Escolha em Type, "NS"
+	Em Subdomain, escolha um subdomínio para o outro subdomínio já criado, exemplo: tn.iodinetn
+	Em Domain, escolha o domínio anterior, como o: mooo.com
+	Marque a caixa de seleção "Enabled for all subscribers" e salve
+	*Para verificar se o servidor está acessível, use: http://code.kryo.se/iodine/check-it/
+2º Inicie o servidor Iodine:
+	iodined -c -p 53 10.0.0.1/24 tn.servertn.mooo.com
+	*5353 é a porta escolhida para o Iodine escutar
+	*10.0.0.1 é o IP/rede onde o servidor ficará visível no tunél
+	*tn.iodinetn.mooo.com é o subdomínio do subdomínio usado para obter o IP do servidor
+3º Ligue o cliente:
+	É necessário instalar uma interface virtual TAP, o que é feito instalando o OpenVPN.
+	iodine.exe tn.iodinetn.mooo.com
+	*tn.iodinetn.mooo.com é o subdomínio do subdomínio usado para obter o IP do servidor
+*A interface virtual do cliente, no exemplo, receberá o IP 10.0.0.2.
+	Se houve conexão, o servidor estará disponível "localmente" no IP 10.0.0.1.
+
+*Habilitando NAT no server:
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -t filter -A FORWARD -i eth0 -o dns0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -t filter -A FORWARD -i dns0 -o eth0 -j ACCEPT
+
+________________________________________________________________________________
+Squid:
+##Instalação
+##apt-get install squid3
+##Geração de credencial:
+##apt-get install apache2-utils
+##htpasswd -c /etc/squid3/passwd squidUser
+
+
+#auth_param basic program /usr/lib/squid3/basic_ncsa_auth /etc/squid3/passwd
+#auth_param basic realm proxy
+
+acl url1 url_regex -i 127.0.0.1
+acl authenticated proxy_auth REQUIRED
+
+http_access allow url1
+#http_access allow authenticated
+http_access deny all
+
+http_port 8080
+visible_hostname universo
+
+forwarded_for off
+via off

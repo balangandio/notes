@@ -1,0 +1,72 @@
+# Ambiente:
+#                 192.168.0.2  192.168.1.1
+#  192.168.0.1---------->new0--new1---------->192.168.1.101
+#    AP(Base)           PC(Repetidor)            cliente
+#
+
+#vi /etc/hostapd/hostapd.conf
+interface=new1
+driver=nl80211
+hw_mode=g
+channel=1
+ieee80211=1
+ssid=Repetidor
+
+wpa=3
+wpa_passphrase=12345678
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
+
+wme_enabled=1
+macaddr_acl=0
+ignore_broadcast_ssid=0
+logger_syslog=-1
+logger_syslog_level=2
+logger_stdout=-1
+logger_stdout_level=1
+ctrl_interface=/var/run/hostapd
+ctrl_interface_group=0
+auth_algs=1
+
+
+#vi /etc/dhcp/dhcpd.conf
+ddns-update-style none;
+default-lease-time 600;
+max-lease-time 7200;
+authoritative;
+subnet 192.168.1.0 netmask 255.255.255.0 {
+	option subnet-mask 255.255.255.0;
+	option broadcast-address 192.168.1.255;
+	option routers 192.168.1.1;
+	option domain-name-servers 192.168.0.1;
+	range 192.168.1.100 192.168.1.200;
+}
+
+#vi /etc/default/isc-dhcp-server
+INTERFACES="new1"
+
+
+ifconfig wlan0 down
+iw phy phy0 interface add new0 type station
+iw phy phy0 interface add new1 type __ap
+ifconfig new0 down && ifconfig new1 down
+ifconfig new0 hw ether 00:11:22:33:44:55
+ifconfig new1 hw ether 00:11:22:33:44:66
+ifconfig new0 up && ifconfig new1 up
+ifconfig new1 192.168.1.1 up
+
+
+# Conexão com a base
+echo 'ctrl_interface=/var/run/wpa_supplicant' > /etc/wpa_sup.conf
+wpa_passphrase Base 12345678 >> /etc/wpa_sup.conf
+wpa_supplicant -inew0 -c/etc/wpa_sup.conf
+
+# Rede virtual
+hostapd /etc/hostapd/hostapd.conf
+dhcpd -cf /etc/dhcp/dhcpd.conf
+
+# Roteamento NAT
+echo "1" > /proc/sys/net/ipv4/ip_forward
+iptables --table nat --append POSTROUTING --out-interface new0 -j MASQUERADE
+iptables --append FORWARD --in-interface new1 -j ACCEPT

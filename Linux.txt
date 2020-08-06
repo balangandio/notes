@@ -1,0 +1,614 @@
+MOUNT:============================================
+mkdir /mnt/usb                    --Criando diretório para ser o ponto de montagem
+mount /dev/sdb1 /mnt/usb  --Montando uma partição no diretório criado
+unmount /mnt/usb                --Desmontando
+
+
+VI:===============================================
+vi <arquivo>  --Abrir o editor
+i  --Entrar em modo de inserção(Tecla ESC para sair)(semelhante a 'a' e 'o')
+:w  --Salvar alterações(':w arqnovo.txt' para gravar em novo arquivo)
+:wq  --Salvar e sair
+:q!  --Sair sem salvar
+yy  --Copiar linha('5yy' copia as próximas 5 linhas)
+dd  --Apaga linha('5dd' apaga as próximas 5 linhas)
+p  --Cola conteúdo copiado
+G  --Pula para a última linha('42G' pula para a linha 42; '' desfaz pulo)
+w  --Pula para a próxima palavra('b' para a anterior)
+dw  --Apaga palavra
+u  --Desfaz ultimo comando
+/  --Pesquisa um texto
+!  --Executa um comando externo('!r' para imprir a saída no texto)
+
+
+ORDEM DE BOOT:====================================
+Dentro do arquivo /etc/default/grub há a seguinte linha:
+GRUB_DEFAULT=0
+Ela estabelece qual das linhas que são mostradas na tela de boot será a padrão. Sendo que elas iniciam a partir de 0.
+*Na linha GRUB_TIMEOUT=0 define o tem de espera.
+Após as alterações, rode update-grub para registro.
+
+
+SENHA DO /etc/shadow:=============================
+openssl passwd -1 yourpass
+ROOT:=============================================
+su -  --Loga-se como root(- atualiza variáveis do ambiente)
+sux   --Loga-se como root atualizando as permições do ambiente gráfico(para aplicações gráficas)
+sudo comando  --Executa um comando como root
+gksudo comandoGrafico  --Sudo que atualiza as permições do Gnome(para aplicações gráficas)
+sudo passwd   --Altera a senha do root
+*No Ubuntu, somente os usuários do grupo admin podem executar comandos com ele. Pode-se adicionar usuários ou grupo, ou pode-se incluir outros grupos editando o arq. do sudo(com cuidado).
+*Pode-se definir os grupos que podem executar o sudo em /etc/sudoers.
+*Por padrão o Ubuntu pede a senha do usuário para executar um comando sudo, para evitar isso pode-se alterar a linha no arq. do sudo: %admin ALL=(ALL) ALL  para  %admin ALL=NOPASSWD: ALL
+
+
+USUÁRIOS:=========================================
+su - usuário -c "comando"  --Executa um comando com um usuário específico
+getent passwd | cut -d \: -f1  ou  cut -d : -f 1,5 /etc/passwd | tr : \\\t  --Lista usuários
+cat /etc/group   --Lista grupos
+adduser usuario  --Cria um usuário
+passwd usuario   --Altera a senha de um usuário(*somente o próprio ou o root podem)
+deluser usuario  --Deleta um usuário(por padrão a sua home não é apagada)
+addgroup usuario grupo  --Adiciona um usuário a um grupo
+*para Gnome, a ferramenta que gerencia usuários e grupos é a "users-admin"
+*informação de usuários ficam em /etc/passwd. Mas as senhas ficam encriptadas em /etc/shadow
+
+
+ALTERAÇÃO DE POSSE DE ARQUIVOS E PASTAS:===========
+chown -R usuario /pasta/  ou  chown usuario arquivo  --Alteração de posse a um usuário
+chown -R usuario:grupo /pasta/  --Especificação de grupo que tera posse
+
+
+ALTERAÇÃO DE PERMISSÃO DE ARQUIVOS E PASTAS:=======
+*ls -l  --Lista arquivos e diretórios e suas permições
+chmod n¹n²n³ arquivo/pasta  --Alteração de um arquivo(ex.: chmod 777 teste.txt)
+                            --n¹: permição do dono
+	                    --n²: permição do grupo
+	                    --n³: permição do resto
+*Soma-se os seguites valores para se opter uma permição: 
+	4: Ler
+	2: Alterar conteúdo(criar novos arqs. em caso de pasta)
+	1: Executar(listar arqs. em caso de pasta)
+	0: Sem permição alguma(usuário não pode ver)
+*Resultando em:
+	0: Sem permissão alguma. Se for uma pasta, o usuário sequer pode ver o conteúdo.
+	1: Permissão apenas para executar(não é possível ler o arquivo ou alterá-lo, apenas executar um programa). No caso de uma pasta, o "1" permite que se liste os arquivos dentro dela, mas sem ler ou alterar os arquivos.
+	4: Apenas leitura.
+	5: (4+1): Ler e executar(no caso de um arq.)ou ver os arqs. e abri-los, no caso de uma pasta.
+	6: (4+2): Leitura + gravação.
+	7: (4+2+1): Controle total: leitura + gravação + permissão para executar
+*Para pastas usa-se a soma: 5 (4+1) ou 7 (4+2+1)
+
+
+INSTALAÇÃO por CÓDIGO FONTE(.tar.bz2 .tar.gz):====
+1.Crie uma pasta e coloque o pacote dentro
+2.Descompacte: tar -jxvf pacote.tar.bz2 ou tar -zxvf pacote.tar.gz 
+3.Cheque as dependências para a instalação: ./configure
+4.Instale: make  e  make install  (ajuda para erros: INSTALL ou README)
+
+
+DESCOMPACTAÇÂO/COMPACTAÇÂO:=======================
+*tar -cvf (aquivo).tar *                      --Compactar todos os aquivos da pasta
+tar -cvf (aquivo).tar (arqs. para compactar)  --Compactar TAR
+tar -xvf (aquivo).tar                         --Descompactar TAR
+rar a (arquivo).rar (aquivos para compactar)  --Compactar RAR
+rar e (aquivo).rar                            --Descompactar RAR
+
+
+DIVERSOS:=========================================
+dpkg -i programa.deb        --Instalar programas .deb
+apt-get -f install          --Verifica a instalação anterior
+iwconfig wlan0 txpower off  --Desativar o transmissor Wi-Fi
+hostname                    --Nome do PC para a rede
+update-rc.d -f (serviço) remove(ou defaults para o contrario)  --Remove o serviço da inicialização
+pwd                         --Diretório atual
+dd if=/dev/cdrom of=(arquivo a criar).iso      --Cria imagem de um CD
+dd if=kali.iso of=/dev/penDrive bs=512k        --Criando um liveUSB
+gcc -Wall -o /home/hello /home/hello.c         --Compilando C(-Wall: auto include)
+ffmpeg -i inputfile.xxx -sameq outputfile.yyy  --Convertendo vídeo para melhor qualidade(-s define a resolução)
+*ffmpeg -i entrada.mp4(entrada) -ar 44100(amostragem de audio) -ab 128(bitrare de audio) -ac 2(nº de canais de audio) -b 1000(bitrate de video) -s 480x360(resolução) -ss 00:00:05(tempo inicial) -t 10(duração/tempo final) test.mpg(saída)
+
+
+LOGANDO COM USUÁRIO ALTOMATICAMENTE:==============
+1.Abra o aquivo rc.local
+2.Coloque o comando antes do exit:  su -l <usuário> -c startx
+
+
+RECUPERANDO GRUB:=================================
+#Entre no terminal como root de um live-CD
+*fdisk -l            --Lista as partições
+mount /dev/sdX /mnt  --Monte a patição do sistema onde o grub irá ficar(onde está a distro)
+grub-install --root-directory=/mnt /dev/sda  --Instale o grub na raiz do disco
+update-grub          --Atualiza todas as entradas do menu do GRUB2 
+
+
+RECUPERANDO MRB WINDOWS7:==========================
+1.Delete a partição linux
+2.CD win7: na opção "Reparar o computador" >> "Prompt de comando": 
+bootrec /fixmbr
+bootrec /fixboot
+[Depois na opção "Startup repair" ou "Correção de inicialização"]
+
+
+RECUPERANDO MRB WINDOWS8:==========================
+1.Delete a partição linux
+2.CD win8: na opção "Reparar o computador">>"Resolução de Problemas">>“Opções avançadas”>>“Linha de Comandos”
+bootrec.exe /fixmbr    —> Repara o Master Boot Record
+bootrec.exe /fixboot   —-> Repara o BOOT do Windows
+
+
+CRIANDO UM liveUSB PERMANENTE DO KALI:=============
+3º coloque o ISO nele com: dd if=kali.iso of=/dev/penDrive bs=512k
+3.1º ou use o Win32DiskImage no Windows(necessário para a versão light)
+4º gparted /dev/penDrive e crie uma segunda partição no espaço livre restante, no formato ext4 e com a Label: persistence.
+5º feche o Gparted e entre com os comandos no terminal:
+mkdir /mnt/usb
+mount /dev/penDrive2 /mnt/usb   --penDrive2 é a partição persistence criada.
+echo "/ union" >> /mnt/usb/persistence.conf
+umount /dev/penDrive
+6º ao iniciar o pen drive, no menu de boot, escolha a opção Live Persistence.
+
+
+SSH:===============================================
+ssh usuario@IpServer (ou ssh -l usuario IpServer) --Loga-se como um dos usuários do sistema
+-X  --Inicial seção em terminal gráfico
+-p <porta>  --Espeficida porta
+ssh-keygen -t rsa  --Gera um par de chaves para o atual usuário logado: o par de chaves permite cria uma nova camada de seguração; uma chave(privada) fica no cliente e a outra é passada ao servidor(pública); sendo que cada par de chave pode ser protegida por uma passphrase; o servidor sabe os usuários que usam par de chaves pelas suas chaves públicas; quando um deles tenta iniciar uma sessão, o servidor pega a chave pública do usuário e cria um autenticação que só pode ser reasolvida se ele tiver a mesma chave privada da criação, e se ele tem, é pedido a passphrase(caso tenha-se definido), em seguida é iniciada a seção; não precisa de login;
+ssh-copy-id -i ~/.ssh/id_rsa.pub usuario@servido  --Passa a chave pública uma chave publica para o servidor(o servidor deve ter o usuário)
+sftp usuario@servidor  --Loga-se no servidor para transferir arquivo(put e get para upload e download; cd, ls, pwd, para navegar; lcd, lls, lpwd, lmkdir, para navegação local)
+scp /minhaPasta/arq usuario@servidor:/servidorPasta/  --Copia uma arquivo para o servidor sem entrar em sessão(-r recursividade; -C compressão)
+ssh -L<portaAserAbertaLocalmente>:<servidor>:<portaAserPegadaDoservidor> <usuario>@<servidor>  --"Tunela" uma porta do servidor para o computador por sessão ssh(-f para rodar em backgroud, libera terminal; -N para apenas criar o redirecionamente, sem iniciar sessão em terminal)
+ssh -L4242:200.233.124.32:21 admin@200.233.124.32  --Pega a porta de FTP localmente do servidor, joga no tunel ssh e redireciona localmente para a porta 4242 do computador
+
+
+RESTRINGINDO CONTA SSH À TUNNELING:=================
+-useradd -m sshuser  #adiciona usuário
+#coloca ao final do arquivo /etc/ssh/sshd_config:
+Match User sshuser
+        AllowTcpForwarding yes
+        X11Forwarding no
+        PermitTunnel yes
+        GatewayPorts yes
+        AllowAgentForwarding yes                                                                                                                     
+        ForceCommand echo 'This account can only tunnel!'
+
+
+
+SSH Tunnel:=========================================
+C      ___                 |
+ \    /net\                |
+ A----\___/------Wall--B   |
+ /                         |
+D                          |
+---------------------------
+
+Cenário: B só consegue estabelecer uma conexão SSH com A, e somente.
+
+Local forwarding: 
+-B quer acessar uma porta remota, seja ela em A ou em um C remoto.
+-Para B acessar o Google na porta 127.0.0.1:1234
+--ssh -L 1234:www.google.com:80 user@hostname
+-Para B acessar a porta 127.0.0.1:3306 do servidor.
+--ssh -L 1234:127.0.0.1:3306 user@hostname
+
+Remote forwarding: 
+-B quer ser acessado.
+-A disponibiliza uma porta que vai de encontro a uma porta de B.
+-B quer disponibilizar seu servidor web(127.0.0.1:80) em A(porta 8080):
+--ssh -R 8080:127.0.0.1:80 user@hostname
+
+Dynamic forwarding:
+-A cria "forwards instantâneos" para onde B quiser.
+-B quer poder acessar qualquer coisa da internet, B quer um SOCKS proxy.
+--ssh -D 1080 user@hostname
+
+
+Acesso remoto ao mysql:=============================
+--vi /etc/mysql/my.cnf
+--Procure o parâmetro bind-address e mudo seu valor para 0.0.0.0
+--mysql -u root -p
+--GRANT ALL ON dataBase.* TO usuario@'%' IDENTIFIED BY 'senha';
+--FLUSH PRIVILEGES;
+--quit;
+--service mysql restart
+*% poderia ser um IP em específico.
+
+
+Dropbear============================================
+#criar usuário
+useradd -M sshonly -p sshonly
+#Alterar shell para /bin/false
+vi /etc/passwd
+#Registrar shell /bin/false caso já não esteja
+echo "/bin/false" >> /etc/shells
+
+apt-get install dropbear
+dropbear -a -p 443
+#Chaves rsa e dsa do OpenSSH são convertidas auto
+#Editar /etc/default para rodar na inicialização
+
+
+Hans================================================
+apt-get update
+apt-get install make g++
+
+wget http://universo42.comxa.com/Tmp/Tunnel/Hans/hans-master.zip
+unzip hans-master.zip
+cd hans-master
+make
+mv hans /bin
+cd ..
+rm -R hans-master hans-master.zip
+
+echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_all
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+#Server
+hans -s 192.168.42.0
+#Client
+hans -c serverIP -f
+
+
+Ptunnel=============================================
+apt-get install ptunnel
+#Server
+ptunnel -c eth1
+#Client
+ptunnel -p serverIP -lp 22 -da 127.0.0.1 -dp 2222
+
+
+Iptables==============================
+#Habilitar IP forward
+sysctl -w net.ipv4.ip_forward=1
+#*Editar /etc/sysctl.conf para definitivo
+
+#Permitindo clientes se comunicarem 
+iptables -A FORWARD -i tun0 -j ACCEPT
+iptables -A FORWARD -o tun0 -j ACCEPT
+
+#Permitindo clientes se comunicarem com redes externas por uma interface
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+#Encaminhando porta 80 pra um cliente
+iptables -t nat -A PREROUTING -i ppp0 -p tcp --dport 8080 -j DNAT --to 192.168.43.9:8080
+
+#Encaminhando porta 80 para outra porta do próprio server
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3128
+
+#Dropping um IP
+iptables -A INPUT -s 65.55.44.100 -j DROP
+
+#Levando em consideração que a interface externa é a eth3
+#Porta 8888 é a porta local a ser oferecida
+#Porta 80 é a porta onde a 8888 fica oferecida na interface eth3
+iptables -t nat -I PREROUTING -p tcp -i eth3 --dport 80 -j DNAT --to-destination 127.0.0.1:8888
+sysctl -w net.ipv4.conf.eth3.route_localnet=1
+
+#Listando regras com nº de linha:
+iptables -L --line-numbers
+
+#Deletando regra específica:
+iptables -D INPUT 3
+
+
+NETCAT:=============================================
+ENVIO    =  cat server.conf | nc -v -l -p 5555
+RECEPÇÃO =  nc serverIP 5555 > server.conf
+
+SERVER REMOTO    = ncat -v -l -p 7777 -e /bin/bash  ou  nc -v -l -n -p 8888 -e cmd.exe
+ACESSANDO SERVER = nc localhost 7777
+
+
+NMAP:===============================================
+-sS
+# TCP SYN scan: lança um SYN na porta, se obteve resposta SYN/ACK, porta berta. RST, fechada. Timeout sem resposta, filtrada.
+-sT
+# TCP connect scan: scan TCP SYN onde nmap pede ao sistema a criar uma conexão com o alvo, e não criar um raw socket em baixo nível. Uso quando nmap não tem privilegios. Ineficiente.
+-sU
+# UDP scan: lança um pacote UDP em direção a porta. Se obtem resposta UDP, abeta. Se obtem resposta ICMP type 3 code 3, closed. Outos ICMP codes, filtered. Sem resposta, open|filtered.
+-sV
+# Detecção de versão de serviços
+-O
+# OS detection
+
+
+cpufreq:===========================================
+#Install
+apt-get install cpufrequtils
+
+#Obter informação dos reguladores de frequencia
+cpufreq-info
+
+#Setar o regulador userspace (800MHz) nos dois cores de uma CPU
+#cpufreq-set -g userspace -c 0
+#cpufreq-set -g userspace -c 1
+cpufreq-set -u 800MHz -c 0
+cpufreq-set -u 800MHz -c 1
+
+#Max
+cpufreq-set -g performance -c 0
+cpufreq-set -g performance -c 1
+
+#Frequencia atual
+lscpu | grep MHz
+#Frequencia de cada core
+cat /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq
+#Verificando o max de cada core
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq
+
+
+SSH throw HTTP proxy:============================
+apt-get install connect-proxy
+
+vi /etc/ssh/ssh_config
+##Adicionar para um host em especifico:
+#Host meu.ssh.net
+#  ProxyCommand connect -H 127.0.0.1:8080 %h 443
+
+
+NetworkManager interface ignore:=================
+#Editar o arquivo /etc/NetworkManager/NetworkManager.conf
+#Adicionando o mac da interface a ser ignorada abaixo
+[main]
+plugins=keyfile
+
+[keyfile]
+unmanaged-devices=mac:78:E4:00:87:BA:D2
+
+
+Wondershaper:=====================================
+apt-get install wondershaper
+
+#Uso wondershaper {inf} {down kbps} {up kbps}
+wondershaper tun0 1024 1024
+
+#Limpar
+wondershaper clear tun0
+
+
+Mysql:============================================
+#Porta específica
+mysqld --port 3333
+#Setando senha do root pela primeira vez
+mysqladmin -u root password root
+#Alterando senha
+#mysqladmin -u root -p root toor
+
+#Login
+mysql -u root -p
+#Garantindo acesso remoto ao root
+GRANT ALL ON *.* to root@'%' IDENTIFIED BY 'root';
+
+
+Redsocks:=========================================
+# Redirecionar tráfego da rede wlan para proxy socks
+
+apt-get install redsocks
+redsocks -c redsocks.conf
+
+### redsocks.conf ###
+base{
+	log_debug=off;
+	log_info=off;
+	log="syslog:daemon";
+	daemon=on;
+	redirector=iptables;
+}
+redsocks {
+	local_ip=127.0.0.1;
+	local_port=12345;  # running port
+	ip=127.0.0.1;
+	port=1080;  # socks proxy port
+	type=socks5;
+}
+######################
+
+
+Megacmd:=========================================
+apt-get install gccgo-go git
+wget https://github.com/t3rm1n4l/megacmd/archive/master.zip
+unzip master.zip
+cd megacmd-master
+make
+mv megacmd /bin
+
+vi ~/.megacmd.json
+####### CONTEUDO #########
+{
+    "User" : "MEGA_USERNAME_EMAIL",
+    "Password" : "MEGA_PASSWORD",
+    "DownloadWorkers" : 4,
+    "UploadWorkers" : 4,
+    "SkipSameSize" : true,
+    "Verbose" : 1
+}
+##########################
+
+#Listar arquivos
+megacmd list mega:/meu/dir
+
+#Baixar arquivo
+megacmd get mega:/file.txt /tmp/
+
+#Baixar conteúdo de uma pasta
+megacmd [OPTIONS] sync mega:/dir/ /tmp/dir/
+
+
+Certificado SSL:================================
+# Geração do certificado
+cd /usr/local/bin
+wget https://dl.eff.org/certbot-auto
+chmod +x certbot-auto
+./certbot-auto -d www.sistemas.dftrans.df.gov.br --nginx certonly
+
+# Caso virtual env não sejá encontrado, tentar:
+# yum install python-pip
+# pip install virtualenv
+
+# Chaves mais seguras
+openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+
+# No arquivo /etc/nginx/nginx.conf ou /etc/nginx/conf.d/default.conf dentro de server {...} :
+listen       80;
+listen       443 ssl;
+server_name  www.sistemas.dftrans.df.gov.br;
+ssl_certificate "/etc/letsencrypt/live/www.sistemas.dftrans.df.gov.br/fullchain.pem";
+ssl_certificate_key "/etc/letsencrypt/live/www.sistemas.dftrans.df.gov.br/privkey.pem";
+ssl_dhparam "/etc/ssl/certs/dhparam.pem";
+ssl_session_cache shared:SSL:1m;
+ssl_session_timeout  10m;
+ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+ssl_ciphers HIGH:SEED:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!RSAPSK:!aDH:!aECDH:!EDH-DSS-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA:!SRP;
+ssl_prefer_server_ciphers on;
+
+# Renovação automatizada
+crontab -e
+# ADD: 15 3 * * * /usr/local/bin/certbot-auto renew --quiet
+
+
+
+Service:=====================================
+touch /etc/init.d/myservice
+chmod +x /etc/init.d/myservice
+vi /etc/init.d/myservice
+
+############ Conteúdo ############
+#!/bin/bash
+echoPid() {
+	pid=`ps aux | grep app | grep -v grep | awk '{print $2}'`
+	echo "$pid"
+}
+start() {
+	java -Xmx4g -jar /root/app.jar > /root/app.log &
+}
+stop() {
+	pid=`ps aux | grep app | grep -v grep | awk '{print $2}'`
+	kill -9 $pid
+}
+status() {
+	pid=$( echoPid )
+	if [ -z "$pid" ]; then
+		echo "STATUS: not running"
+	else
+		echo "STATUS: running on PID $pid"
+	fi
+}
+case "$1" in 
+    start)
+       start
+       ;;
+    stop)
+       stop
+       ;;
+    restart)
+       stop
+       start
+       ;;
+    status)
+       status
+       ;;
+    *)
+       echo "Usage: $0 {start|stop|status|restart}"
+esac
+
+exit 0
+#########################
+
+# Deixando serviço no boot
+# Descubra o runlevel do sistema com:
+runlevel
+# Entre na pasta /etc/rc.d/rc$.d onde $ é runlevel
+cd /etc/rc.d/rc3.d
+# Link para o serviço escolhendo o numeral com dois dígitos depois
+# do caracter 'S' (string) correspodente a ordem de inicialização
+ln -s ../init.d/myservice S96myservice
+#########################
+
+# Socks server
+apt-get install hpsockd
+vi /etc/hpsockd.conf
+# Colocar no arquivo:
+daemon {
+        name            "sockd";
+        listen-address  { 192.168.254.1; };
+        directory       "/var/cache/hpsockd";
+        negotiate-file  "negot_file";
+        port            1080;
+        user            "nobody";
+};
+logging { };
+env { PING="/bin/ping %z"; TRACEROUTE="/usr/sbin/traceroute %z"; };
+default { };
+route { { default       host }; };
+method-list {
+        { number   0; name "noAuth"; internal; flags 0; };
+        { number   2; name "userPass"; internal; flags 0; };
+        { number 254; name "v4"; internal; flags 0; };
+};
+client-method { { src { 192.168.254.0/24; }; method { "userPass"; "v4"; "noAuth"; }; }; };
+client { permit { src { 192.168.254.0/24; }; timeout 1h; }; deny { }; };
+
+# Start
+service hpsockd start
+#########################
+
+
+# Dante socks server
+apt-get install dante-server
+vi /etc/danted.conf
+
+# Configuração:
+logoutput: stderr
+
+# accept connections going to that address.
+internal: 192.168.254.1 port = 1080
+
+# all outgoing connections from the server will use the IP address
+external: 66.96.193.12
+
+# list over acceptable methods, order of preference.
+method: username none
+
+# when doing something that can require privilege, it will use the userid:
+user.privileged: proxy
+
+# when running as usual, it will use the unprivileged userid of:
+user.notprivileged: nobody
+
+
+client pass {
+	from: 0.0.0.0/0 to: 0.0.0.0/0
+	log: error connect disconnect
+}
+
+client block {
+	from: 0.0.0.0/0 to: 0.0.0.0/0
+	log: connect error
+}
+
+pass {
+	from: 0.0.0.0/0 to: 0.0.0.0/0
+	log: error connect disconnect
+}
+
+# last line, block everyone else
+block {
+	from: 0.0.0.0/0 to: 0.0.0.0/0
+	log: connect error
+}
+###
+
+# Iniciar
+service danted start
+
+#########################
+
+
+
+iptables -F
+iptables -t nat -F
+echo "1" > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A POSTROUTING --out-interface ppp0 -j MASQUERADE
+iptables -t nat -A PREROUTING -i wlan0 -p tcp -j REDIRECT --to-port 12345
+# DNS redirect
+iptables -t nat -A PREROUTING -i wlan0 -d 192.168.137.1 -p udp --dport 53 -j DNAT --to 200.169.117.222:53

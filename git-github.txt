@@ -1,0 +1,190 @@
+# Gti é uma ferramenta de versionamento, ou de controle de código.
+# Github é uma plataforma de repositórios remotos acessíveis pelo Git
+
+# Configurando autor e email:
+# As variáveis configuradas são armazenadas no arquivo .gitconfig da pasta do usuário.
+git config --global user.name universo42
+git config --global user.email universo42.01@gmail.com
+git config --global --list	#lista variáveis já configuradas
+
+# 3 formas de configurar um Git repository
+-um repositório do zero:
+--criamos um novo repositório vazio.
+-um repositório pra um projeto já existente:
+--convertemos um projeto não versionado para um repositório git.
+-um repositório a partir do github:
+--copiamos um repositório remoto existente do github.
+
+# Criando um repositório vazio:
+mkdir meuRepoVazio
+cd meuRepoVazio
+git init
+
+# Criando um repositório de um diretório já existente:
+cd meuProjeto
+git init
+
+# Criando um repositório a partir de um já existente no GitHub
+git clone https://github.com/bibroy/sample-java-project
+cd sample-java-project
+
+# Fork é a criação de um repositório que será a cópia de um já existente.
+# Iniciando um fork de um projeto no github, será criado um novo repositório 
+# com uma cópia do projeto já existe na sua conta.
+
+
+# Estados de um artefato:
+-modified: o artefato é alterado pelo usuário.
+-staged: usuário adiciona seu artefato alterado para o índice do Git, para ser submetido.
+--comando: add
+-commited: usuário finaliza o artefato e o mesmo é armazenado na base de dados do git.
+--comando: commit
+
+# Estados
+->working directory (diretório local do artefato)
+-->staging area (área temporária de preparo)
+--->commit (diretório .git do artefato)
+---->push (repositório remoto)
+
+# Status do projeto
+git status
+git status -s	#resumido
+
+# Adicionando mudanças para a stage area:
+cd meuRepoVazio
+echo "sample" > file.txt
+git add file.txt	
+git rm --cached file.txt	#para removê-lo do stage
+
+# Commiting mudanças:
+cd meuRepoVazio
+echo "sample" > file.txt
+git add file.txt
+git commit -m "first commit"	#-m especifica um comentário
+
+
+# Histórico de commits:
+cd meuRepo
+git log
+git log --oneline	#resumido
+git log file.txt	#commits associados a um arquivo
+git log d110129..74d91c5	#commits num intervalo
+git log -n 3	#últimos 3 commits
+
+
+# Branch
+# Equivale a uma linha de mudança do projeto.
+# Branch master é a linha principal.
+# Normalmente não desenvolvemos o projeto no branch master.
+# Ao ter realizar que uma mudança abrimos um novo branch,
+# e ao finalizarmos a mesma, submetemos ao branch anterior.
+git branch	#lista os branchs do projeto
+git branch demobranch	#cria um novo branch
+git checkout demobranch	#alterna pra o branch criado
+
+
+
+# Repositórios remotos
+# Antes de modificar um repositório remoto sincronizamos para a mais recente: git pull
+# Para submeter o nosso repositório local pra o repositório remoto: git push
+
+# Pull:
+# git clone por default adiciona: origin master
+git clone https://github.com/bibroy/sample-java-project
+cd sample-java-project
+# mudanças ocorrem remotamente...
+git pull origin master	#sincroniza com o branch master, o que poderia seu outro
+
+# Push:
+echo "add something" >> file.txt
+git add file.txt
+git commit -m "going to push"
+git push origin master	
+#submete as mudanças feitas no branch master local para o branch remoto previamente clonado.
+# Caso alguém tenha feito push de mudanças antes de você, o comando falhará.
+# Será necessário incorporá as mudanças feitas com pull para depois conseguir
+# submeter suas próprias mudanças com push.
+
+
+# Conexão com GitHub por SSH:
+# Gerando as chaves par de chaves:
+ssh-keygen -C "github key"
+# Copie o conteúdo da chave pública gerada: .pub
+# Cole o conteúdo nas sessão SSH Keys da conta no github
+# Alterando url de conexão com repositório remoto
+cd demo
+git remove -v	#mostra a url de conexão com o repositório remoto configurada
+git remote set-url origin git@github.com:balangandio/demo.git
+# Voltando ao mode de conexão por http:
+git remote set-url origin https://github.com/balangandio/demo.git
+
+
+
+
+
+# Git bash
+
+
+# Clone
+git clone htts://servce/repository
+# Alternar entre branches
+git checkout homologacao_frontend_integracao_backup
+
+# Criando branche
+git branch pbi2933
+# Criando branche e alternando para a mesma
+git checkout -b pbi2933
+# Criando branche e alternando para a mesma, a partir de uma especificada
+git checkout -b pbi2933 producao
+
+# Adicionando todos os arquivos para a stage area
+git add --all
+# Fechando um commit
+git commit -m '<-> Alterações...'
+# Enviando nova branche para origem
+git push origin pbi2933
+# Obtenção dos arquivos da branche remota
+git fetch
+# Obtenção dos arquivos da branche remota e merge com a branche local
+git pull
+
+
+
+#Setup Portal front end
+
+mkdir Portal-FrontEnd
+cd Portal-FrontEnd
+git clone http://cgdfsrv41:8080/tfs/Dev/PortalDaTransparencia2016/_git/PT2016_BackEnd
+cd PT2016_BackEnd
+git checkout homologacao_frontend_integracao_backup
+git pull
+npm set strict-ssl false
+npm install
+npm install -g bower
+npm install -g gulp
+# Certificar-se que C:\Users\<user>\AppData\Roaming\npm\ esteja no PATH
+bower install
+# Run
+gulp --dev --skip-lint
+
+
+
+#Subindo projeto para o repositório no GitHub
+
+# Iniciliza a pasta local
+cd projeto
+git init
+# Definindo URL do repositório
+git remote add upstream https://github.com/ORIGINAL_OWNER/ORIGINAL_REPOSITORY.git
+# Pull com o repositório
+git pull upstream master --allow-unrelated-histories
+# Commit inicial
+git add --all
+git commit -m '<-> Commit'
+# Envio dos arquivos
+git push upstream master
+
+
+
+# Definindo proxy
+git config http.proxy http://proxy.server.com:8080
